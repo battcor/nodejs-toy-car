@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+</head>
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <script>
+        w = $('#canvas').width();
+        h = $('#canvas').height();
+        x = y = angle = mod = place = 0;
+        dist = 100;
+
+        $(function () {
+            var socket = io();
+            socket.on('remote', function (msg) {
+                cmd = msg.cmd;
+
+                if (cmd === 'MOVE') {
+                    mod = 1;
+                }
+
+                if (cmd === 'LEFT') {
+                    angle += 90;
+                }
+
+                if (cmd === 'RIGHT') {
+                    angle -= 90;
+                }
+
+                if (cmd === 'PLACE') {
+                    args = msg.param.split(",");
+                    xPos = parseInt(args[0]);
+                    yPos = parseInt(args[1]);
+                    direction = args[2];
+
+                    if (validPos(xPos, yPos, w, h, dist)) {
+                        place = 1;
+                        x = xPos;
+                        y = yPos;
+                    }
+
+                    angle = 0;
+                    if (direction === 'EAST') {
+                        angle += 0;
+                    }
+                    if (direction === 'NORTH') {
+                        angle += 90;
+                    }
+                    if (direction === 'WEST') {
+                        angle += 180;
+                    }
+                    if (direction === 'SOUTH') {
+                        angle -= 90;
+                    }
+                }
+            });
+        });
+
+        context = graph(w, h, dist);
+        car = new Image();
+        car.src = "car.png";
+
+        var moveInterval = setInterval(function () {
+            draw();
+        }, 30);
+
+        function graph(w, h, dist) {
+            canvas = document.getElementById("canvas");
+            context = canvas.getContext("2d");
+
+            for (var a = 0; a <= w; a += dist) {
+                context.moveTo(0 + a, 0);
+                context.lineTo(0 + a, h);
+            }
+
+            for (var a = 0; a <= h; a += dist) {
+                context.moveTo(0, 0 + a);
+                context.lineTo(w, 0 + a);
+            }
+            context.strokeStyle = "black";
+            context.stroke();
+            return context;
+        }
+
+        function draw() {
+            if (place === 1) {
+                context.clearRect(0, 0, w, h);
+                context = graph(w, h, dist);
+                context.save();
+
+                xPos = x;
+                yPos = y;
+
+                cos = Math.cos(Math.PI / 180 * angle);
+                if(cos != 1 && cos != -1){
+                    cos = 0;
+                }
+
+                sin = Math.sin(Math.PI / 180 * angle);
+                if(angle % 180 === 0){
+                    sin = 0;
+                }
+
+                x += (dist * mod) * cos;
+                y += (dist * mod) * sin;
+
+                if (!validPos(x, y, w, h, dist)) {
+                    x = xPos;
+                    y = yPos;
+                }
+
+                context.translate(0, h);
+                context.scale(1, -1);
+
+                context.translate(x, y);
+                context.rotate(Math.PI / 180 * angle);
+                context.drawImage(car, -(car.width / 2), -(car.height / 2));
+                context.restore();
+                mod = 0;
+            }
+        }
+
+        function validPos(x, y, w, h, dist){
+            return x >= 0 && x <= w && x % dist === 0 && y >= 0 && y <= h && y % dist === 0;
+        }
+    </script>
+</body>
+
+</html>
