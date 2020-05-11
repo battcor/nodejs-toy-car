@@ -19,7 +19,7 @@ npm install
 node index.js
 ```
 
-Open http://localhost:3000/
+Open http://localhost:3000/ on a web browser.
 
 ## Place Toy Car
 
@@ -43,16 +43,12 @@ node toycar.js PLACE 200,500,SOUTH
 
 ## Move Toy Car
 
-Open a new terminal
-
 ```
 node toycar.js MOVE
 ```
 
 
 ## Rotate Toy Car
-
-Open a new terminal
 
 ```
 node toycar.js LEFT
